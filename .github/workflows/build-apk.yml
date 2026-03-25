@@ -68,4 +68,24 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name
+          tag_name: build-${{ github.run_number }}
+          name: "Debug Build #${{ github.run_number }}"
+          body: |
+            ## 屏幕翻译 测试版 (Debug APK)
+
+            **构建编号：** #${{ github.run_number }}
+            **提交：** ${{ github.sha }}
+
+            ### 下载说明
+            - 这是一个 **Debug 测试版本**，未进行正式签名，可直接下载安装。
+            - 用于日常开发测试与功能验证。
+
+            ### 安装方法
+            1. 下载下方的 `.apk` 文件到手机。
+            2. 手机设置 → 安全 → 开启「允许安装未知来源应用」。
+            3. 点击 APK 文件进行安装。
+          files: artifacts/*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
