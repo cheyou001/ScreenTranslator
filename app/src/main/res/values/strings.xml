@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">屏幕翻译</string>
+
+    <!-- Status -->
+    <string name="status_running">● 翻译服务运行中</string>
+    <string name="status_stopped">● 服务未启动</string>
+
+    <!-- Buttons -->
+    <string name="start_translation">开始实时翻译</string>
+    <string name="stop_translation">停止翻译</string>
+    <string name="go_to_settings">前往设置</string>
+    <string name="cancel">取消</string>
+    <string name="got_it">知道了</string>
+
+    <!-- Settings labels -->
+    <string name="language_settings">语言设置</string>
+    <string name="source_language">识别语言（屏幕上的文字）</string>
+    <string name="target_language">翻译目标语言</string>
+    <string name="capture_settings">捕获设置</string>
+    <string name="capture_interval">截图间隔</string>
+    <string name="overlay_opacity">悬浮窗透明度</string>
+    <string name="font_size">翻译字体大小</string>
+    <string name="small">小</string>
+    <string name="medium">中</string>
+    <string name="large">大</string>
+    <string name="seconds_format">%d 秒</string>
+
+    <!-- Overlay -->
+    <string name="original_text">原文</string>
+    <string name="translated_text">译文</string>
+    <string name="waiting_for_capture">等待截图…</string>
+    <string name="waiting_for_translation">等待翻译…</string>
+
+    <!-- Permission dialogs -->
+    <string name="overlay_permission_title">需要悬浮窗权限</string>
+    <string name="overlay_permission_message">本 App 需要「悬浮窗」权限，才能在屏幕上显示翻译结果。请在接下来的设置页中为本应用开启该权限。</string>
+    <string name="overlay_permission_required">请授予悬浮窗权限后重试</string>
+    <string name="permission_denied">未授予屏幕录制权限</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">屏幕翻译服务</string>
+    <string name="notification_channel_desc">实时屏幕翻译后台服务通知</string>
+    <string name="notification_title">屏幕翻译运行中</string>
+    <string name="notification_text">正在实时翻译屏幕内容，点击可打开设置</string>
+
+    <!-- Toast -->
+    <string name="service_started">翻译服务已启动</string>
+    <string name="service_stopped">翻译服务已停止</string>
+
+    <!-- Info dialog -->
+    <string name="how_to_use_title">使用说明</string>
+    <string name="how_to_use_message">1. 选择【识别语言】（屏幕上文字的语言）和【翻译目标语言】\n\n2. 调整截图间隔（建议 2–3 秒）\n\n3. 点击【开始实时翻译】并授予屏幕录制权限\n\n4. 屏幕上会出现可拖动的悬浮窗，实时显示翻译内容\n\n5. 拖动悬浮窗标题栏可移动位置；点击"—"可最小化，点击"×"可停止服务\n\n⚠️ 首次使用时，ML Kit 翻译模型需要下载（约 30–50 MB / 语言对），请确保有网络连接。下载后可离线翻译。</string>
+</resources>

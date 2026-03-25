@@ -1,0 +1,122 @@
+name: Build APK
+
+on:
+  # 每次推送到 main/master 分支时自动构建
+  push:
+    branches:
+      - main
+      - master
+  # 允许在 GitHub 网页上手动触发
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Debug & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. 拉取代码 ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. 配置 JDK 17 ──────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # ── 3. 赋予 gradlew 执行权限 ─────────────────────────────────
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ── 4. 缓存 Gradle 依赖（加速后续构建）─────────────────────────
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # ── 5. 构建 Debug APK（无需签名，可直接安装）────────────────────
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      # ── 6. 构建 Release APK（未签名）────────────────────────────────
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      # ── 7. 对 Release APK 进行签名 ──────────────────────────────────
+      #    签名所需的 4 个 Secrets 需在 GitHub 仓库设置中配置（见下方说明）
+      - name: Sign Release APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      # ── 8. 重命名产物，加上版本号和构建时间 ─────────────────────────
+      - name: Rename APK files
+        run: |
+          DATE=$(date +'%Y%m%d-%H%M')
+          mkdir -p artifacts
+
+          # Debug APK
+          cp app/build/outputs/apk/debug/app-debug.apk \
+             artifacts/ScreenTranslator-debug-${DATE}.apk
+
+          # Signed Release APK（签名成功时存在）
+          SIGNED="${{ steps.sign_app.outputs.signedReleaseFile }}"
+          if [ -f "$SIGNED" ]; then
+            cp "$SIGNED" artifacts/ScreenTranslator-release-signed-${DATE}.apk
+          else
+            # 若未配置签名 Secrets，则保留未签名版本
+            cp app/build/outputs/apk/release/app-release-unsigned.apk \
+               artifacts/ScreenTranslator-release-unsigned-${DATE}.apk
+          fi
+
+      # ── 9. 上传构建产物（在 Actions 页面直接下载）────────────────────
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenTranslator-APKs
+          path: artifacts/
+          retention-days: 30          # 保留 30 天
+
+      # ── 10. 自动创建 GitHub Release（仅 main/master 分支）────────────
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "Build #${{ github.run_number }}"
+          body: |
+            ## 屏幕翻译 APK
+
+            **构建编号：** #${{ github.run_number }}
+            **提交：** ${{ github.sha }}
+            **时间：** ${{ github.event.head_commit.timestamp }}
+
+            ### 下载说明
+            - **Debug APK** — 直接安装测试，无需签名
+            - **Release APK（signed）** — 已签名，适合日常使用（需配置签名 Secrets）
+            - **Release APK（unsigned）** — 未配置签名时的备用版本
+
+            ### 安装方法
+            1. 下载 APK 到手机
+            2. 手机设置 → 安全 → 开启「允许安装未知来源应用」
+            3. 点击 APK 文件安装
+          files: artifacts/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
